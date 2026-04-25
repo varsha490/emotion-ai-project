@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emotion AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <!-- ✅ ADD: extra styles -->
+    <style>
+        .emotion-badge {
+            padding: 20px;
+            border-radius: 30px;
+            font-size: 26px;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .emotion-badge:hover {
+            transform: scale(1.05);
+        }
+
+        .progress {
+            width: 80%;
+            height: 10px;
+            background: #1e293b;
+            border-radius: 10px;
+            margin: 10px auto;
+        }
+
+        #bar {
+            height: 100%;
+            width: 0%;
+            background: #22c55e;
+            border-radius: 10px;
+            transition: 0.5s;
+        }
+
+        .container {
+            animation: fadeIn 1s ease;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(20px);}
+            to {opacity: 1; transform: translateY(0);}
+        }
+    </style>
+
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2>Emotion AI 🎭</h2>
+    <div>
+        <a href="/dashboard">📊 Analytics</a> <!-- ✅ ADDED -->
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<h2>Welcome {{ session['user'] }}</h2>
+
+<div class="container">
+
+    <h3>Live Detection 🎥</h3>
+
+    <div id="emotionText" class="emotion-badge">
+        Detecting...
+    </div>
+
+    <!-- ✅ ADD: Confidence bar -->
+    <div class="progress">
+        <div id="bar"></div>
+    </div>
+
+    <img src="{{ url_for('video') }}" width="700">
+
+</div>
+
+<script>
+setInterval(() => {
+    fetch('/api/current_emotion')
+    .then(res => res.json())
+    .then(data => {
+
+        const emotion = (data.emotion || "detecting").toLowerCase();
+        const confidence = data.confidence || 0;
+
+        const el = document.getElementById("emotionText");
+
+        // ✅ ADD: Emoji
+        const emojiMap = {
+            happy: "😄",
+            sad: "😢",
+            angry: "😡",
+            fear: "😨",
+            surprise: "😲",
+            neutral: "😐"
+        };
+
+        let emoji = emojiMap[emotion] || "😐";
+
+        // ✅ FIX: avoid NaN
+        let text = emoji + " " + emotion.toUpperCase();
+
+        if(confidence > 0){
+            text += " (" + Math.round(confidence) + "%)";
+        }
+
+        el.innerText = text;
+
+        // ✅ ADD: Progress bar
+        document.getElementById("bar").style.width = confidence + "%";
+
+        // 🎨 color change
+        if(emotion === "happy") el.style.background = "#fde047";
+        else if(emotion === "angry") el.style.background = "#ef4444";
+        else if(emotion === "sad") el.style.background = "#3b82f6";
+        else if(emotion === "fear") el.style.background = "#9333ea";
+        else if(emotion === "surprise") el.style.background = "#a855f7";
+        else el.style.background = "#22c55e";
+
+    })
+    .catch(err => {
+        console.log("API Error:", err);
+    });
+
+}, 1000);
+</script>
+
+</body>
+</html>
