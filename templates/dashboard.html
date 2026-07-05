@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Emotion Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="navbar">
+    <h2>Emotion Analytics 📊</h2>
+    <div>
+        <a href="/">Home</a>
+        <a href="/logout">Logout</a>
+    </div>
+</div>
+
+<h2>Insights</h2>
+
+<div class="container">
+
+    <h3 id="mood">Mood: ...</h3>
+
+    <h3>History</h3>
+    <div id="history"></div>
+
+    <h4 id="timer"></h4>
+
+</div>
+
+<script>
+let history = [];
+let start = Date.now();
+
+setInterval(() => {
+
+    fetch('/api/current_emotion')
+    .then(res => res.json())
+    .then(data => {
+
+        const emotion = data.emotion.toLowerCase();
+
+        // 📜 HISTORY
+        history.push(emotion);
+        if(history.length > 5) history.shift();
+
+        document.getElementById("history").innerText =
+            history.join(" → ");
+
+        // 🧠 MOOD
+        let mood = "Neutral 😐";
+
+        if(emotion === "happy") mood = "Positive 😊";
+        else if(emotion === "sad" || emotion === "fear") mood = "Stressed 😟";
+        else if(emotion === "angry") mood = "Aggressive 😠";
+
+        document.getElementById("mood").innerText = "Mood: " + mood;
+
+    });
+
+}, 1000);
+
+
+// ⏱️ TIMER
+setInterval(()=>{
+    let sec = Math.floor((Date.now() - start)/1000);
+    document.getElementById("timer").innerText =
+        "Session Time: " + sec + " sec";
+},1000);
+</script>
+
+</body>
+</html>
